@@ -7,9 +7,9 @@ app = Flask(__name__)
 
 @app.route("/", methods=["POST"])
 def hello_world():
-    data = request.json()
+    data = request.json
     rsp = {}
-    if "url_verification" == body.get("type", ""):
+    if "url_verification" == data.get("type", ""):
         challenge = data.get("challenge")
         rsp = {"challenge": challenge}
     else:
