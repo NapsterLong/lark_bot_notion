@@ -18,7 +18,7 @@ worker_class = 'gevent'
 worker_connections = 2000
 
 # 设置进程文件目录
-pidfile = '/usr/local/gunicorn/gunicorn.pid'
+#pidfile = '/usr/local/gunicorn/gunicorn.pid'
 
 # 设置访问日志和错误信息日志路径
 accesslog = "logs/access.log"
