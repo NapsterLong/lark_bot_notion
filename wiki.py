@@ -1,44 +1,29 @@
-import json
-import os
-from collections import namedtuple
-
 import lark_oapi as lark
-from lark_oapi.api.auth.v3 import InternalTenantAccessTokenRequest, InternalTenantAccessTokenRequestBody, \
-    InternalTenantAccessTokenResponse
 from lark_oapi.api.wiki.v2 import *
 
-BotConfig = namedtuple("BotConfig", ["name", "app_id", "app_secret", "domain", "app_name"])
-doc_manager_config = BotConfig("doc_manager", "cli_a53cc9d5d2f8d013", "IHEEn5jcZMK1I6WJLLwXJc6JZVeqxUjc",
-                               "https://open.feishu.cn", "文档管理")
+from lark_util import lark_client
+
 space_id = "7306385583323185153"
 
 
-def get_tenant_access_token():
-    client = lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
-        doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build()
+def get_wiki_node(wiki_token) -> Optional[Node]:
     # 构造请求对象
-    request: InternalTenantAccessTokenRequest = InternalTenantAccessTokenRequest.builder().request_body(
-        InternalTenantAccessTokenRequestBody.builder().app_id(doc_manager_config.app_id).app_secret(
-            doc_manager_config.app_secret).build()).build()
+    request: GetNodeSpaceRequest = GetNodeSpaceRequest.builder().token(wiki_token).build()
 
     # 发起请求
-    response: InternalTenantAccessTokenResponse = client.auth.v3.tenant_access_token.internal(request)
+    option = lark.RequestOption.builder().build()
+    response: GetNodeSpaceResponse = lark_client.wiki.v2.space.get_node(request, option)
 
     # 处理失败返回
     if not response.success():
         lark.logger.error(
-            f"client.auth.v3.tenant_access_token.internal failed, code: {response.code}, msg: {response.msg}, log_id: {response.get_log_id()}")
+            f"client.wiki.v2.space.get_node failed, code: {response.code}, msg: {response.msg}, log_id: {response.get_log_id()}")
         return
 
-    content = json.loads(response.raw.content)
-    return content.get("tenant_access_token")
+    return response.data.node
 
 
-def nodes(page_token=None, parent_node_token=None) -> ListSpaceNodeResponseBody:
-    # 创建client
-    # 使用 user_access_token 需开启 token 配置, 并在 request_option 中配置 token
-    client = lark.Client.builder().enable_set_token(True).log_level(lark.LogLevel.DEBUG).build()
-
+def nodes(page_token=None, parent_node_token=None) -> Optional[ListSpaceNodeResponseBody]:
     # 构造请求对象
     builder = ListSpaceNodeRequest.builder().space_id(space_id).page_size(50)
     if page_token:
@@ -48,8 +33,8 @@ def nodes(page_token=None, parent_node_token=None) -> ListSpaceNodeResponseBody:
     request: ListSpaceNodeRequest = builder.build()
 
     # 发起请求
-    option = lark.RequestOption.builder().user_access_token(get_tenant_access_token()).build()
-    response: ListSpaceNodeResponse = client.wiki.v2.space_node.list(request, option)
+    option = lark.RequestOption.builder().build()
+    response: ListSpaceNodeResponse = lark_client.wiki.v2.space_node.list(request, option)
 
     # 处理失败返回
     if not response.success():
@@ -58,9 +43,53 @@ def nodes(page_token=None, parent_node_token=None) -> ListSpaceNodeResponseBody:
         return
 
     # 处理业务结果
-    lark.logger.info(lark.JSON.marshal(response.data, indent=4))
+    # lark.logger.info(lark.JSON.marshal(response.data, indent=4))
     return response.data
 
 
+def nodes_all(parent_node_token=None) -> List[Node]:
+    result = []
+    last_node = nodes(None, parent_node_token)
+    if last_node.items:
+        result.extend(last_node.items)
+    flag = last_node.has_more
+    while flag:
+        new_node = nodes(last_node.page_token, parent_node_token)
+        if new_node.items:
+            result.extend(new_node.items)
+        flag = new_node.has_more
+    return result
+
+
+from datetime import datetime, timedelta
+from datetime import date
+
+today = date.today()
+today = datetime(today.year, today.month, today.day)
+yesterday = today - timedelta(days=1)
+tomorrow = today + timedelta(days=1)
+start_ts = int(today.timestamp())
+end_ts = int(tomorrow.timestamp())
+
+
+def scan_target_node(parent_node_token=None, parent_node: Node = None):
+    result = []
+    for c_node in nodes_all(parent_node_token):
+        if parent_node:
+            if start_ts <= int(c_node.node_create_time) <= end_ts and parent_node.obj_type in ("docx", "bitable"):
+                result.append((c_node, parent_node))
+        result.extend(scan_target_node(c_node.node_token, c_node))
+    return result
+
+
+def scan_bitable_node(parent_node_token=None):
+    result = []
+    for c_node in nodes_all(parent_node_token):
+        if c_node.obj_type == "bitable":
+            result.append(c_node)
+        result.extend(scan_bitable_node(c_node.node_token))
+    return result
+
+
 if __name__ == '__main__':
-    nodes(parent_node_token="BNRWw849ri9za4kPXiKc3uIPnse")
+    print(get_wiki_node("VC2EwGqWfijEamkPH9ecuswAn6c").title)
