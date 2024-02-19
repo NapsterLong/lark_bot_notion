@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import lark_oapi as lark
 from lark_oapi.api.wiki.v2 import *
 
@@ -61,15 +62,10 @@ def nodes_all(parent_node_token=None) -> List[Node]:
     return result
 
 
-from datetime import datetime, timedelta
-from datetime import date
-
-today = date.today()
-today = datetime(today.year, today.month, today.day)
-yesterday = today - timedelta(days=1)
-tomorrow = today + timedelta(days=1)
-start_ts = int(today.timestamp())
-end_ts = int(tomorrow.timestamp())
+today = datetime.today()
+last_7 = today - timedelta(days=60)
+start_ts = int(last_7.timestamp())
+end_ts = int(today.timestamp())
 
 
 def scan_target_node(parent_node_token=None, parent_node: Node = None):
@@ -86,6 +82,8 @@ def scan_bitable_node(parent_node_token=None):
     result = []
     for c_node in nodes_all(parent_node_token):
         if c_node.obj_type == "bitable":
+            result.append(c_node)
+        if start_ts <= int(c_node.obj_edit_time) <= end_ts and c_node.obj_type == "docx":
             result.append(c_node)
         result.extend(scan_bitable_node(c_node.node_token))
     return result
