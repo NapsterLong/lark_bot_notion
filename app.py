@@ -69,6 +69,7 @@ def get_app_token_and_table_id_from_node(c_node):
 
 
 def lark_doc2bitable():
+    print("lark_doc2bitable start")
     t1 = time.time()
     result_node = scan_target_node()
     add_data = []
@@ -101,6 +102,7 @@ def lark_doc2bitable():
 
 
 def lark_bitable_auto_delete():
+    print("lark_bitable_auto_delete start")
     t1 = time.time()
     result_node = scan_bitable_node()
     delete_data = []
@@ -130,6 +132,7 @@ def lark_bitable_auto_delete():
 
 @scheduler.task("cron", id="lark_doc_job", day="*", hour="03", minute="00", second="00")
 def lark_doc_job():
+    print("lark_doc_job start")
     add_data = lark_doc2bitable()
     delete_data = lark_bitable_auto_delete()
     today = datetime.today().strftime("%Y-%m-%d")

@@ -63,7 +63,7 @@ def nodes_all(parent_node_token=None) -> List[Node]:
 
 
 today = datetime.today()
-last_7 = today - timedelta(days=60)
+last_7 = today - timedelta(days=7)
 start_ts = int(last_7.timestamp())
 end_ts = int(today.timestamp())
 
