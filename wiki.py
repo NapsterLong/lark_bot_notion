@@ -2,12 +2,14 @@ from datetime import datetime, timedelta
 import lark_oapi as lark
 from lark_oapi.api.wiki.v2 import *
 
-from lark_util import lark_client
+from lark_util import doc_manager_config
 
 space_id = "7306385583323185153"
 
 
 def get_wiki_node(wiki_token) -> Optional[Node]:
+    lark_client = lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
+        doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build()
     # 构造请求对象
     request: GetNodeSpaceRequest = GetNodeSpaceRequest.builder().token(wiki_token).build()
 
@@ -25,6 +27,8 @@ def get_wiki_node(wiki_token) -> Optional[Node]:
 
 
 def nodes(page_token=None, parent_node_token=None) -> Optional[ListSpaceNodeResponseBody]:
+    lark_client = lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
+        doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build()
     # 构造请求对象
     builder = ListSpaceNodeRequest.builder().space_id(space_id).page_size(50)
     if page_token:

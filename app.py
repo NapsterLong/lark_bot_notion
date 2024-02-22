@@ -130,7 +130,7 @@ def lark_bitable_auto_delete():
     return delete_data
 
 
-@scheduler.task("cron", id="lark_doc_job", day="*", hour="3", minute="00", second="00")
+@scheduler.task("cron", id="lark_doc_job", day="*", hour="22", minute="39", second="00")
 def lark_doc_job():
     print("lark_doc_job start")
     add_data = lark_doc2bitable()

@@ -1,11 +1,14 @@
 import lark_oapi as lark
 from lark_oapi.api.bitable.v1 import *
 from lark_oapi.api.docx.v1 import *
-from lark_util import lark_client
+
+from lark_util import doc_manager_config
 
 
 # https://open.feishu.cn/document/server-docs/docs/bitable-v1/app-table/list
 def bitable_list_tables(app_token) -> List[AppTable]:
+    lark_client = lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
+        doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build()
     result = []
 
     # 构造请求对象
@@ -25,6 +28,8 @@ def bitable_list_tables(app_token) -> List[AppTable]:
 
 # https://open.feishu.cn/document/server-docs/docs/bitable-v1/app-table-field/list
 def bitable_list_fields(app_token, table_id) -> List[AppTableFieldForList]:
+    lark_client = lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
+        doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build()
     # 构造请求对象
     request: ListAppTableFieldRequest = ListAppTableFieldRequest.builder().app_token(app_token).table_id(
         table_id).build()
@@ -43,6 +48,8 @@ def bitable_list_fields(app_token, table_id) -> List[AppTableFieldForList]:
 
 # https://open.feishu.cn/document/server-docs/docs/bitable-v1/app-table-record/list?appId=cli_a53cc9d5d2f8d013
 def bitable_list_records(app_token, table_id) -> List[AppTableRecord]:
+    lark_client = lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
+        doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build()
     # 构造请求对象
     request: ListAppTableRecordRequest = ListAppTableRecordRequest.builder().app_token(app_token).table_id(
         table_id).build()
@@ -60,6 +67,8 @@ def bitable_list_records(app_token, table_id) -> List[AppTableRecord]:
 
 
 def bitable_insert_record(app_token, table_id, record):
+    lark_client = lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
+        doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build()
     # 构造请求对象
     request: CreateAppTableRecordRequest = CreateAppTableRecordRequest.builder() \
         .app_token(app_token) \
@@ -82,6 +91,8 @@ def bitable_insert_record(app_token, table_id, record):
 
 
 def bitable_delete_record(app_token, table_id, record_id):
+    lark_client = lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
+        doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build()
     # 构造请求对象
     request: DeleteAppTableRecordRequest = DeleteAppTableRecordRequest.builder() \
         .app_token(app_token) \
@@ -102,6 +113,8 @@ def bitable_delete_record(app_token, table_id, record_id):
 
 
 def docx_list_blocks(obj_token) -> List[Block]:
+    lark_client = lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
+        doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build()
     # 构造请求对象
     request: ListDocumentBlockRequest = ListDocumentBlockRequest.builder() \
         .document_id(obj_token) \

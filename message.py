@@ -3,10 +3,12 @@ import json
 import lark_oapi as lark
 from lark_oapi.api.im.v1 import *
 
-from lark_util import lark_client
+from lark_util import doc_manager_config
 
 
 def send_msg(receive_id_type, receive_id, msg_type, content):
+    lark_client = lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
+        doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build()
     # 构造请求对象
     request: CreateMessageRequest = CreateMessageRequest.builder().receive_id_type(receive_id_type).request_body(
         CreateMessageRequestBody.builder().receive_id(receive_id).msg_type(msg_type).content(

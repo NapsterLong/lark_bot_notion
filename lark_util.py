@@ -9,11 +9,10 @@ BotConfig = namedtuple("BotConfig", ["name", "app_id", "app_secret", "domain", "
 doc_manager_config = BotConfig("doc_manager", "cli_a53cc9d5d2f8d013", "IHEEn5jcZMK1I6WJLLwXJc6JZVeqxUjc",
                                "https://open.feishu.cn", "文档管理")
 
-lark_client = lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
-    doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build()
-
 
 def get_tenant_access_token():
+    lark_client = lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
+        doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build()
     # 构造请求对象
     request: InternalTenantAccessTokenRequest = InternalTenantAccessTokenRequest.builder().request_body(
         InternalTenantAccessTokenRequestBody.builder().app_id(doc_manager_config.app_id).app_secret(
