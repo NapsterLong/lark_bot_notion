@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import lark_oapi as lark
 from lark_oapi.api.wiki.v2 import *
 
-from lark_util import doc_manager_config
+from lark_util import doc_manager_config, get_tenant_access_token
 
 space_id = "7306385583323185153"
 
@@ -14,8 +14,7 @@ def get_wiki_node(wiki_token) -> Optional[Node]:
     request: GetNodeSpaceRequest = GetNodeSpaceRequest.builder().token(wiki_token).build()
 
     # 发起请求
-    option = lark.RequestOption.builder().build()
-    response: GetNodeSpaceResponse = lark_client.wiki.v2.space.get_node(request, option)
+    response: GetNodeSpaceResponse = lark_client.wiki.v2.space.get_node(request)
 
     # 处理失败返回
     if not response.success():
@@ -38,8 +37,7 @@ def nodes(page_token=None, parent_node_token=None) -> Optional[ListSpaceNodeResp
     request: ListSpaceNodeRequest = builder.build()
 
     # 发起请求
-    option = lark.RequestOption.builder().build()
-    response: ListSpaceNodeResponse = lark_client.wiki.v2.space_node.list(request, option)
+    response: ListSpaceNodeResponse = lark_client.wiki.v2.space_node.list(request)
 
     # 处理失败返回
     if not response.success():
