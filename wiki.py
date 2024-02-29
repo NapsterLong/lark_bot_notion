@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import logging
 import lark_oapi as lark
 from lark_oapi.api.wiki.v2 import *
 
@@ -92,4 +93,4 @@ def scan_bitable_node(parent_node_token=None):
 
 
 if __name__ == '__main__':
-    print(get_wiki_node("VC2EwGqWfijEamkPH9ecuswAn6c").title)
+    logging.info(get_wiki_node("VC2EwGqWfijEamkPH9ecuswAn6c").title)

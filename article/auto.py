@@ -1,5 +1,6 @@
 import os
 import random
+import logging
 import re
 import math
 from openai import OpenAI
@@ -105,31 +106,31 @@ def get_url_content(url):
 def gpt_base_process(url):
     origin_content = get_url_content(url)
     title = origin_content.splitlines()[0]
-    print("【title】")
-    print(title)
-    print("=======")
+    logging.info("【title】")
+    logging.info(title)
+    logging.info("=======")
     
     new_title_prompt = prompts["gpt4"]["step4"].format(title=title)
     new_title = openai_gpt(new_title_prompt)
-    print(new_title)
-    print("=======")
+    logging.info(new_title)
+    logging.info("=======")
     
-    print("【content】")
-    print(origin_content)
-    print("=======")
+    logging.info("【content】")
+    logging.info(origin_content)
+    logging.info("=======")
 
     article_framework_prompt = prompts["gpt4"]["step1"].format(text=origin_content)
     article_framework = openai_gpt(article_framework_prompt)
-    print(article_framework)
-    print("=======")
+    logging.info(article_framework)
+    logging.info("=======")
 
     article_prompt = prompts["gpt4"]["step2"].format(text=article_framework)
     article = openai_gpt(article_prompt)
-    print(article)
-    print("=======")
+    logging.info(article)
+    logging.info("=======")
 
     output = trans(article)
-    print(output)
+    logging.info(output)
 
     return output
 

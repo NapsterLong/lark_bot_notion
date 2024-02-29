@@ -23,7 +23,7 @@ class Config:
 scheduler = APScheduler()
 app = Flask(__name__)
 app.config.from_object(Config())
-
+logger = app.logger
 
 @app.route("/", methods=["GET"])
 def index():
@@ -33,27 +33,27 @@ def index():
 @app.route("/", methods=["POST"])
 def lark_callback():
     data = request.json
-    print(f"request:{data}")
+    logger.info(f"request:{data}")
     rsp = {}
     if "url_verification" == data.get("type", ""):
         challenge = data.get("challenge")
         rsp = {"challenge": challenge}
     else:
         pass
-    print(f"response:{rsp}")
+    logger.info(f"response:{rsp}")
     return rsp
 
 @app.route("/article", methods=["POST"])
 def article_callback():
     data = request.json
-    print(f"request:{data}")
+    logger.info(f"request:{data}")
     rsp = {}
     if "url_verification" == data.get("type", ""):
         challenge = data.get("challenge")
         rsp = {"challenge": challenge}
     else:
         pass
-    print(f"response:{rsp}")
+    logger.info(f"response:{rsp}")
     return rsp
 
 
@@ -86,12 +86,12 @@ def get_app_token_and_table_id_from_node(c_node):
 
 
 def lark_doc2bitable():
-    print("lark_doc2bitable start")
+    logger.info("lark_doc2bitable start")
     t1 = time.time()
     result_node = scan_target_node()
     add_data = []
     for c_node, parent_node in result_node:
-        print(c_node.title, c_node.obj_token, parent_node.title, parent_node.obj_token)
+        # logger.info(c_node.title, c_node.obj_token, parent_node.title, parent_node.obj_token)
         app_token, table_id = get_app_token_and_table_id_from_node(parent_node)
         if table_id:
             fields = bitable_list_fields(app_token, table_id)
@@ -114,17 +114,17 @@ def lark_doc2bitable():
                                          "database_title": parent_node.title,
                                          "database_url": f"https://napsterlong.feishu.cn/wiki/{parent_node.node_token}"})
 
-    print(f"lark_doc2bitable end,cost:{int(time.time() - t1)}s")
+    logger.info(f"lark_doc2bitable end,cost:{int(time.time() - t1)}s")
     return add_data
 
 
 def lark_bitable_auto_delete():
-    print("lark_bitable_auto_delete start")
+    logger.info("lark_bitable_auto_delete start")
     t1 = time.time()
     result_node = scan_bitable_node()
     delete_data = []
     for c_node in result_node:
-        print(c_node.title, c_node.obj_token)
+        # logger.info(c_node.title, c_node.obj_token)
         app_token, table_id = get_app_token_and_table_id_from_node(c_node)
         if table_id:
             fields = bitable_list_fields(app_token, table_id)
@@ -143,13 +143,13 @@ def lark_bitable_auto_delete():
                             delete_data.append({"database_title": c_node.title,
                                                 "database_url": f"https://napsterlong.feishu.cn/wiki/{c_node.node_token}",
                                                 "delete_title": primary_value_text})
-    print(f"lark_bitable_auto_delete end,cost:{int(time.time() - t1)}s")
+    logger.info(f"lark_bitable_auto_delete end,cost:{int(time.time() - t1)}s")
     return delete_data
 
 
 @scheduler.task("cron", id="lark_doc_job", day="*", hour="3", minute="00", second="00")
 def lark_doc_job():
-    print("lark_doc_job start")
+    logger.info("lark_doc_job start")
     add_data = lark_doc2bitable()
     delete_data = lark_bitable_auto_delete()
     today = datetime.today().strftime("%Y-%m-%d")
@@ -161,7 +161,7 @@ def lark_doc_job():
                             "delete_data": delete_data
                         }}}
     send_msg("user_id", "4g898ecg", "interactive", content)
-    print("lark_doc_job done")
+    logger.info("lark_doc_job done")
 
 
 if __name__ == '__main__':
