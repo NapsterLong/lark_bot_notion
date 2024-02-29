@@ -12,11 +12,11 @@ from doc import bitable_insert_record
 from lark_util import article_collect_config
 from message import send_msg
 
-proxy_url = 'http://127.0.0.1'
-proxy_port = '7890'
+proxy_url = "http://127.0.0.1"
+proxy_port = "7890"
 
-os.environ['http_proxy'] = f'{proxy_url}:{proxy_port}'
-os.environ['https_proxy'] = f'{proxy_url}:{proxy_port}'
+os.environ["http_proxy"] = f"{proxy_url}:{proxy_port}"
+os.environ["https_proxy"] = f"{proxy_url}:{proxy_port}"
 os.environ["OPENAI_API_KEY"] = "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"
 
 prompts = {
@@ -119,37 +119,41 @@ def get_url_content(url):
 
 
 def gpt_base_process(url, open_id=""):
-    logging.info(f"{url},处理开始")
-    origin_content = get_url_content(url)
-    title = origin_content.splitlines()[0]
+    output = ""
+    try:
+        logging.info(f"{url},处理开始")
+        origin_content = get_url_content(url)
+        title = origin_content.splitlines()[0]
 
-    new_title_prompt = prompts["gpt4"]["step4"].format(title=title)
-    new_title = openai_gpt(new_title_prompt)
-    logging.info(f"{url},标题生成成功")
+        new_title_prompt = prompts["gpt4"]["step4"].format(title=title)
+        new_title = openai_gpt(new_title_prompt)
+        logging.info(f"{url},标题生成成功")
 
-    article_framework_prompt = prompts["gpt4"]["step1"].format(text=origin_content)
-    article_framework = openai_gpt(article_framework_prompt)
-    logging.info(f"{url},框架生成成功")
+        article_framework_prompt = prompts["gpt4"]["step1"].format(text=origin_content)
+        article_framework = openai_gpt(article_framework_prompt)
+        logging.info(f"{url},框架生成成功")
 
-    article_prompt = prompts["gpt4"]["step2"].format(text=article_framework)
-    article = openai_gpt(article_prompt)
-    logging.info(f"{url},文章生成成功")
+        article_prompt = prompts["gpt4"]["step2"].format(text=article_framework)
+        article = openai_gpt(article_prompt)
+        logging.info(f"{url},文章生成成功")
 
-    output = trans(article)
-    logging.info(f"{url},文章转换成功")
+        output = trans(article)
+        logging.info(f"{url},文章转换成功")
 
-    write_database(
-        url, title, new_title, origin_content, output, article_framework, article
-    )
-    logging.info(f"{url},数据库写入成功")
-    if open_id:
-        send_msg(
-            "open_id",
-            open_id,
-            "text",
-            {"text": "素材已整理完成!"},
-            article_collect_config,
+        write_database(
+            url, title, new_title, origin_content, output, article_framework, article
         )
+        logging.info(f"{url},数据库写入成功")
+        if open_id:
+            send_msg(
+                "open_id",
+                open_id,
+                "text",
+                {"text": "素材已整理完成!"},
+                article_collect_config,
+            )
+    except Exception as e:
+        logging.exception(f"{url},素材处理失败")
     return output
 
 
