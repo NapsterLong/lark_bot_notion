@@ -55,7 +55,7 @@ prompts = {
 
 re_split = re.compile("。|\n\n|？|！")
 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 
 def openai_gpt(prompt, temperature=0.7, max_tokens=1280):
