@@ -2,6 +2,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(__file__))
 import time
+import json
 from logging.config import dictConfig
 
 dictConfig({
@@ -29,6 +30,8 @@ from wiki import scan_bitable_node, scan_target_node, get_wiki_node
 from doc import *
 from datetime import datetime
 from article.auto import gpt_base_process
+from util import is_url
+
 
 
 class Config:
@@ -60,16 +63,28 @@ def lark_callback():
     logger.info(f"response:{rsp}")
     return rsp
 
+
 @app.route("/article", methods=["POST"])
 def article_callback():
     data = request.json
     logger.info(f"request:{data}")
+    header = data.get("header",{})
+    event = data.get("event",{})
     rsp = {}
     if "url_verification" == data.get("type", ""):
         challenge = data.get("challenge")
         rsp = {"challenge": challenge}
-    else:
-        pass
+    elif header.get("event_type")=="im.message.receive_v1":
+        message = event.get("message",{})
+        sender = event.get("sender",{})
+        open_id = sender.get("sender_id",{}).get("open_id")
+        if message.get("message_type")=="text":
+            content = message.get("content")
+            text = json.loads(content).get("text")
+            if is_url(text):
+                send_msg("open_id",open_id,"text",{"text":"素材处理中，请稍等。"})
+            else:
+                send_msg("open_id",open_id,"text",{"text":"对不起，输入有误！"})        
     logger.info(f"response:{rsp}")
     return rsp
 
