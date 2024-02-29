@@ -1,10 +1,14 @@
 import os
+
+# import sys
+# sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 import random
-import logging
 import re
 import math
 from openai import OpenAI
 from trafilatura import fetch_url, extract
+from doc import bitable_insert_record
+from lark_util import article_collect_config
 
 os.environ["OPENAI_API_KEY"] = "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"
 
@@ -39,13 +43,14 @@ prompts = {
 
         原标题：{title}
         输出：
-        """
+        """,
     }
 }
 
 re_split = re.compile("。|\n\n|？|！")
 
 client = OpenAI()
+
 
 def openai_gpt(prompt, temperature=0.7, max_tokens=1280):
     response = client.chat.completions.create(
@@ -58,6 +63,7 @@ def openai_gpt(prompt, temperature=0.7, max_tokens=1280):
         presence_penalty=0,
     )
     return response.choices[0].message.content.strip()
+
 
 def trans(text: str):
     text = text.strip()
@@ -98,42 +104,51 @@ def trans(text: str):
     # output_text = output_text.replace("\n\n", "\n").strip()
     return output_text
 
+
 def get_url_content(url):
     downloaded = fetch_url(url)
     output = extract(downloaded)
     return output
 
+
 def gpt_base_process(url):
     origin_content = get_url_content(url)
     title = origin_content.splitlines()[0]
-    logging.info("【title】")
-    logging.info(title)
-    logging.info("=======")
-    
+
     new_title_prompt = prompts["gpt4"]["step4"].format(title=title)
     new_title = openai_gpt(new_title_prompt)
-    logging.info(new_title)
-    logging.info("=======")
-    
-    logging.info("【content】")
-    logging.info(origin_content)
-    logging.info("=======")
 
     article_framework_prompt = prompts["gpt4"]["step1"].format(text=origin_content)
     article_framework = openai_gpt(article_framework_prompt)
-    logging.info(article_framework)
-    logging.info("=======")
 
     article_prompt = prompts["gpt4"]["step2"].format(text=article_framework)
     article = openai_gpt(article_prompt)
-    logging.info(article)
-    logging.info("=======")
 
     output = trans(article)
-    logging.info(output)
 
+    write_database(
+        url, title, new_title, origin_content, output, article_framework, article
+    )
     return output
 
-    
-if __name__ == '__main__':
+
+def write_database(
+    url, title, new_title, origin_content, output, article_framework, article
+):
+    app_token = "ZNe3bCaQaaFwZrsrqJXcfOBPnah"
+    table_id = "tblhHroNH6EkMCIL"
+    record = {
+        "文章链接": {"link": url, "text": url},
+        "旧标题": title,
+        "新标题": new_title,
+        "旧内容": origin_content,
+        "新内容": output,
+        "框架": article_framework,
+        "生成内容": article,
+        "状态": "待发布",
+    }
+    bitable_insert_record(app_token, table_id, record, article_collect_config)
+
+
+if __name__ == "__main__":
     gpt_base_process("https://mp.weixin.qq.com/s/eOQDZUPyuF4jZdLyePe_MA")

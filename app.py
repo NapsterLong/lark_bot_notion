@@ -1,38 +1,45 @@
 import os
 import sys
+
 sys.path.append(os.path.dirname(__file__))
 import time
 import json
 from logging.config import dictConfig
-
-dictConfig({
-    'version': 1,
-    'formatters': {'default': {
-        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
-        'formatter': 'default'
-    }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
-    }
-})
-
 from flask import Flask
 from flask import request
 from flask_apscheduler import APScheduler
-
+from concurrent.futures import ThreadPoolExecutor
 from message import send_msg
 from wiki import scan_bitable_node, scan_target_node, get_wiki_node
 from doc import *
 from datetime import datetime
 from article.auto import gpt_base_process
 from util import is_url
-from lark_util import doc_manager_config,article_collect_config
+from lark_util import doc_manager_config, article_collect_config
 
+
+
+dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "default": {
+                "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+            }
+        },
+        "handlers": {
+            "wsgi": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://flask.logging.wsgi_errors_stream",
+                "formatter": "default",
+            }
+        },
+        "root": {"level": "INFO", "handlers": ["wsgi"]},
+    }
+)
+
+
+executors = ThreadPoolExecutor(8)
 
 
 class Config:
@@ -45,6 +52,7 @@ scheduler = APScheduler()
 app = Flask(__name__)
 app.config.from_object(Config())
 logger = app.logger
+
 
 @app.route("/", methods=["GET"])
 def index():
@@ -69,26 +77,38 @@ def lark_callback():
 def article_callback():
     data = request.json
     logger.info(f"request:{data}")
-    header = data.get("header",{})
-    event = data.get("event",{})
+    header = data.get("header", {})
+    event = data.get("event", {})
     rsp = {}
     if "url_verification" == data.get("type", ""):
         challenge = data.get("challenge")
         rsp = {"challenge": challenge}
-    elif header.get("event_type")=="im.message.receive_v1":
-        message = event.get("message",{})
-        sender = event.get("sender",{})
-        open_id = sender.get("sender_id",{}).get("open_id")
-        if message.get("message_type")=="text":
+    elif header.get("event_type") == "im.message.receive_v1":
+        message = event.get("message", {})
+        sender = event.get("sender", {})
+        open_id = sender.get("sender_id", {}).get("open_id")
+        if message.get("message_type") == "text":
             content = message.get("content")
             text = json.loads(content).get("text")
             if is_url(text):
-                send_msg("open_id",open_id,"text",{"text":"素材处理中，请稍等。"},article_collect_config)
+                send_msg(
+                    "open_id",
+                    open_id,
+                    "text",
+                    {"text": "素材处理中，请稍等。"},
+                    article_collect_config,
+                )
+                executors.submit(gpt_base_process,text)
             else:
-                send_msg("open_id",open_id,"text",{"text":"对不起，输入有误！"},article_collect_config)        
+                send_msg(
+                    "open_id",
+                    open_id,
+                    "text",
+                    {"text": "对不起，输入有误！"},
+                    article_collect_config,
+                )
     logger.info(f"response:{rsp}")
     return rsp
-
 
 
 def switch_table_id(tables_info):
@@ -139,13 +159,21 @@ def lark_doc2bitable():
                     if c_node.node_token in primary_value_link:
                         flag = True
                 if not flag:
-                    record = {primary_field.field_name: {
-                        "link": f"https://napsterlong.feishu.cn/wiki/{c_node.node_token}", "text": c_node.title}}
+                    record = {
+                        primary_field.field_name: {
+                            "link": f"https://napsterlong.feishu.cn/wiki/{c_node.node_token}",
+                            "text": c_node.title,
+                        }
+                    }
                     if bitable_insert_record(app_token, table_id, record):
-                        add_data.append({"page_title": c_node.title,
-                                         "page_url": f"https://napsterlong.feishu.cn/wiki/{c_node.node_token}",
-                                         "database_title": parent_node.title,
-                                         "database_url": f"https://napsterlong.feishu.cn/wiki/{parent_node.node_token}"})
+                        add_data.append(
+                            {
+                                "page_title": c_node.title,
+                                "page_url": f"https://napsterlong.feishu.cn/wiki/{c_node.node_token}",
+                                "database_title": parent_node.title,
+                                "database_url": f"https://napsterlong.feishu.cn/wiki/{parent_node.node_token}",
+                            }
+                        )
 
     logger.info(f"lark_doc2bitable end,cost:{int(time.time() - t1)}s")
     return add_data
@@ -173,9 +201,13 @@ def lark_bitable_auto_delete():
                     wiki_node = get_wiki_node(document_token)
                     if not wiki_node:
                         if bitable_delete_record(app_token, table_id, r.record_id):
-                            delete_data.append({"database_title": c_node.title,
-                                                "database_url": f"https://napsterlong.feishu.cn/wiki/{c_node.node_token}",
-                                                "delete_title": primary_value_text})
+                            delete_data.append(
+                                {
+                                    "database_title": c_node.title,
+                                    "database_url": f"https://napsterlong.feishu.cn/wiki/{c_node.node_token}",
+                                    "delete_title": primary_value_text,
+                                }
+                            )
     logger.info(f"lark_bitable_auto_delete end,cost:{int(time.time() - t1)}s")
     return delete_data
 
@@ -186,18 +218,22 @@ def lark_doc_job():
     add_data = lark_doc2bitable()
     delete_data = lark_bitable_auto_delete()
     today = datetime.today().strftime("%Y-%m-%d")
-    content = {"type": "template",
-               "data": {"template_id": "ctp_AA1MZVTX3QtW",
-                        "template_variable": {
-                            "today": today,
-                            "add_data": add_data,
-                            "delete_data": delete_data
-                        }}}
+    content = {
+        "type": "template",
+        "data": {
+            "template_id": "ctp_AA1MZVTX3QtW",
+            "template_variable": {
+                "today": today,
+                "add_data": add_data,
+                "delete_data": delete_data,
+            },
+        },
+    }
     send_msg("user_id", "4g898ecg", "interactive", content)
     logger.info("lark_doc_job done")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     scheduler.init_app(app)
     scheduler.start()
     app.run("0.0.0.0", 9527, debug=True, use_reloader=False)
