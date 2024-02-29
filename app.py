@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.append(os.path.dirname(__file__))
 import time
 
 from flask import Flask
@@ -9,6 +11,7 @@ from message import send_msg
 from wiki import scan_bitable_node, scan_target_node, get_wiki_node
 from doc import *
 from datetime import datetime
+from article.auto import gpt_base_process
 
 
 class Config:
@@ -39,6 +42,20 @@ def lark_callback():
         pass
     print(f"response:{rsp}")
     return rsp
+
+@app.route("/article", methods=["POST"])
+def article_callback():
+    data = request.json
+    print(f"request:{data}")
+    rsp = {}
+    if "url_verification" == data.get("type", ""):
+        challenge = data.get("challenge")
+        rsp = {"challenge": challenge}
+    else:
+        pass
+    print(f"response:{rsp}")
+    return rsp
+
 
 
 def switch_table_id(tables_info):
@@ -148,7 +165,6 @@ def lark_doc_job():
 
 
 if __name__ == '__main__':
-    # lark_doc_job()
-    scheduler.init_app(app)
-    scheduler.start()
-    app.run("0.0.0.0", 9527, debug=True, use_reloader=False)
+    # scheduler.init_app(app)
+    # scheduler.start()
+    # app.run("0.0.0.0", 9527, debug=True, use_reloader=False)
