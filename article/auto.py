@@ -12,6 +12,11 @@ from doc import bitable_insert_record
 from lark_util import article_collect_config
 from message import send_msg
 
+proxy_url = 'http://127.0.0.1'
+proxy_port = '7890'
+
+os.environ['http_proxy'] = f'{proxy_url}:{proxy_port}'
+os.environ['https_proxy'] = f'{proxy_url}:{proxy_port}'
 os.environ["OPENAI_API_KEY"] = "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"
 
 prompts = {
