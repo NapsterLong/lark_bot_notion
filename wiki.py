@@ -3,7 +3,7 @@ import logging
 import lark_oapi as lark
 from lark_oapi.api.wiki.v2 import *
 
-from lark_util import doc_manager_config, get_tenant_access_token
+from lark_util import doc_manager_config
 
 space_id = "7306385583323185153"
 

@@ -8,6 +8,8 @@ from lark_oapi.api.auth.v3 import InternalTenantAccessTokenRequest, InternalTena
 BotConfig = namedtuple("BotConfig", ["name", "app_id", "app_secret", "domain", "app_name"])
 doc_manager_config = BotConfig("doc_manager", "cli_a53cc9d5d2f8d013", "IHEEn5jcZMK1I6WJLLwXJc6JZVeqxUjc",
                                "https://open.feishu.cn", "文档管理")
+article_collect_config = BotConfig("article_collect", "cli_a56a34dfad7a900d", "zfTvbLrhr94IIrGzk3rFDdDkVJux61TF",
+                               "https://open.feishu.cn", "文章素材收集")
 
 
 def get_tenant_access_token():

@@ -31,6 +31,7 @@ from doc import *
 from datetime import datetime
 from article.auto import gpt_base_process
 from util import is_url
+from lark_util import doc_manager_config,article_collect_config
 
 
 
@@ -82,9 +83,9 @@ def article_callback():
             content = message.get("content")
             text = json.loads(content).get("text")
             if is_url(text):
-                send_msg("open_id",open_id,"text",{"text":"素材处理中，请稍等。"})
+                send_msg("open_id",open_id,"text",{"text":"素材处理中，请稍等。"},article_collect_config)
             else:
-                send_msg("open_id",open_id,"text",{"text":"对不起，输入有误！"})        
+                send_msg("open_id",open_id,"text",{"text":"对不起，输入有误！"},article_collect_config)        
     logger.info(f"response:{rsp}")
     return rsp
 
