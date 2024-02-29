@@ -17,7 +17,6 @@ proxy_port = "7890"
 
 os.environ["http_proxy"] = f"{proxy_url}:{proxy_port}"
 os.environ["https_proxy"] = f"{proxy_url}:{proxy_port}"
-os.environ["OPENAI_API_KEY"] = "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"
 
 prompts = {
     "gpt4": {
@@ -56,7 +55,7 @@ prompts = {
 
 re_split = re.compile("。|\n\n|？|！")
 
-client = OpenAI()
+client = OpenAI(api_key="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")
 
 
 def openai_gpt(prompt, temperature=0.7, max_tokens=1280):
