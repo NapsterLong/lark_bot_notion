@@ -6,6 +6,7 @@ import random
 import re
 import math
 import logging
+import requests
 from openai import OpenAI
 from trafilatura import fetch_url, extract
 from doc import bitable_insert_record
@@ -112,17 +113,35 @@ def trans(text: str):
 
 
 def get_url_content(url):
-    downloaded = fetch_url(url)
-    output = extract(downloaded)
-    return output
+    # downloaded = fetch_url(url)
+    headers = {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "accept-language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
+        "cache-control": "max-age=0",
+        "if-modified-since": "Fri, 1 Mar 2024 21:22:29 +0800",
+        "sec-ch-ua": '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"macOS"',
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "none",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+    }
+    params = {"f": "json"}
+    resp = requests.get(url, headers=headers, params=params)
+    downloaded = resp.json()
+    title = downloaded.get("title")
+    content_noencode = downloaded.get("content_noencode")
+    output = extract(content_noencode)
+    return title, output
 
 
 def gpt_base_process(url, open_id=""):
     output = ""
     try:
         logging.info(f"{url},处理开始")
-        origin_content = get_url_content(url)
-        title = origin_content.splitlines()[0]
+        title, origin_content = get_url_content(url)
 
         new_title_prompt = prompts["gpt4"]["step4"].format(title=title)
         new_title = openai_gpt(new_title_prompt)
@@ -157,7 +176,7 @@ def gpt_base_process(url, open_id=""):
 
 
 def write_database(
-    url, title, new_title, origin_content, output, article_framework, article
+        url, title, new_title, origin_content, output, article_framework, article
 ):
     app_token = "ZNe3bCaQaaFwZrsrqJXcfOBPnah"
     table_id = "tblhHroNH6EkMCIL"
