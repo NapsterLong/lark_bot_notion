@@ -107,6 +107,12 @@ def trans(text: str):
             para_count += 1
             if para_count >= para_length and piece_type == "para":
                 para_flag = True
+    for idx, ot in enumerate(output):
+        output[idx] = ot.lstrip("。")
+        if ot.startswith("”") and idx != 0:
+            output[idx - 1] = output[idx - 1] + "”"
+            output[idx] = ot.lstrip("”").lstrip("。")
+
     output_text = "\n".join(output)
     # output_text = output_text.replace("\n\n", "\n").strip()
     return output_text
