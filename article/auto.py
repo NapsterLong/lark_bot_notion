@@ -190,7 +190,7 @@ def get_url_content(url):
 def check_dup(url):
     all_datas = bitable_list_records_all(app_token, table_id)
     for d in all_datas:
-        if d.fields.get("文章链接").strip() == url.strip():
+        if d.fields.get("文章链接").get("link").strip() == url.strip():
             return True
     return False
 
