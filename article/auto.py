@@ -98,7 +98,7 @@ client = {
 }
 
 
-def llm_chat(llm_client, prompt, temperature=0.7, max_tokens=1280):
+def llm_chat(llm_client, prompt, temperature=0.7, max_tokens=2048):
     response = llm_client.chat.completions.create(
         model=model_name,
         messages=[{"role": "user", "content": prompt}],
@@ -193,6 +193,7 @@ def gpt_base_process(url, open_id=""):
 
         new_title_prompt = prompts[model_name]["step4"].format(title=title)
         new_title = llm_chat(llm_client, new_title_prompt)
+        new_title = new_title.strip("\"")
         logging.info(f"{url},标题生成成功")
 
         article_framework_prompt = prompts[model_name]["step1"].format(text=origin_content)
@@ -201,17 +202,12 @@ def gpt_base_process(url, open_id=""):
 
         article_prompt = prompts[model_name]["step2"].format(text=article_framework)
         article = llm_chat(llm_client, article_prompt)
-        logging.info(f"{url},文章生成成功")
+        logging.info(f"{url},文章生成成功，字数：{len(article)}")
         if not open_id:
             print(f"\n{article}\n")
 
-        if prompts[model_name]["step3"]:
+        if len(article) < 1000 and prompts[model_name]["step3"]:
             article_para = article.splitlines()
-            # if len(article_para) > 4:
-            #     remain1 = "\n".join(article_para[:2])
-            #     partial_article = "\n".join(article_para[2:-2])
-            #     remain2 = "\n".join(article_para[-2:])
-            # else:
             remain1 = "\n".join(article_para[:1])
             partial_article = "\n".join(article_para[1:-1])
             remain2 = "\n".join(article_para[-1:])
