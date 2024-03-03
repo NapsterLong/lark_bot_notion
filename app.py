@@ -9,7 +9,7 @@ from flask import Flask
 from flask import request
 from flask_apscheduler import APScheduler
 from concurrent.futures import ThreadPoolExecutor
-from message import send_msg
+from message import send_msg, reply_msg
 from wiki import scan_bitable_node, scan_target_node, get_wiki_node
 from doc import *
 from datetime import datetime
@@ -82,26 +82,25 @@ def article_callback():
         rsp = {"challenge": challenge}
     elif header.get("event_type") == "im.message.receive_v1":
         message = event.get("message", {})
+        message_id = message.get("message_id")
         sender = event.get("sender", {})
         open_id = sender.get("sender_id", {}).get("open_id")
         if message.get("message_type") == "text":
             content = message.get("content")
             text = json.loads(content).get("text")
             if is_url(text):
-                send_msg(
-                    "open_id",
-                    open_id,
-                    "text",
+                reply_msg(
                     {"text": "素材处理中，请稍等。"},
+                    "text",
+                    message_id,
                     article_collect_config,
                 )
-                executors.submit(gpt_base_process, text, open_id)
+                executors.submit(gpt_base_process, text, message_id)
             else:
-                send_msg(
-                    "open_id",
-                    open_id,
-                    "text",
+                reply_msg(
                     {"text": "对不起，输入有误！"},
+                    "text",
+                    message_id,
                     article_collect_config,
                 )
     logger.info(f"response:{rsp}")

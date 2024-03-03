@@ -11,7 +11,7 @@ from openai import OpenAI
 from trafilatura import fetch_url, extract
 from doc import bitable_insert_record
 from lark_util import article_collect_config
-from message import send_msg
+from message import send_msg, reply_msg
 from zhipuai import ZhipuAI
 
 model_name = "glm-4"
@@ -184,7 +184,7 @@ def get_url_content(url):
     return title, output
 
 
-def gpt_base_process(url, open_id=""):
+def gpt_base_process(url, message_id=""):
     output = ""
     try:
         llm_client = client.get(model_name)
@@ -203,7 +203,7 @@ def gpt_base_process(url, open_id=""):
         article_prompt = prompts[model_name]["step2"].format(text=article_framework)
         article = llm_chat(llm_client, article_prompt)
         logging.info(f"{url},文章生成成功，字数：{len(article)}")
-        if not open_id:
+        if not message_id:
             print(f"\n{article}\n")
 
         if len(article) < 1000 and prompts[model_name]["step3"]:
@@ -215,24 +215,23 @@ def gpt_base_process(url, open_id=""):
             new_partial_article = llm_chat(llm_client, expand_prompt)
             article = remain1 + new_partial_article + remain2
             logging.info(f"{url},文章扩写成功")
-            if not open_id:
+            if not message_id:
                 print(f"\n{article}\n")
 
         output = trans(article)
         logging.info(f"{url},文章转换成功")
-        if not open_id:
+        if not message_id:
             print(f"\n{output}\n")
 
         write_database(
             url, title, new_title, origin_content, output, article_framework, article
         )
         logging.info(f"{url},数据库写入成功")
-        if open_id:
-            send_msg(
-                "open_id",
-                open_id,
-                "text",
+        if message_id:
+            reply_msg(
                 {"text": "素材已整理完成!"},
+                "text",
+                message_id,
                 article_collect_config,
             )
     except Exception as e:
