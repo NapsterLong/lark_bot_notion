@@ -244,6 +244,7 @@ def gpt_base_process(url, message_id=""):
             reply_msg({"text": "素材已整理完成!"}, "text", message_id, article_collect_config)
     except Exception as e:
         logging.exception(f"{url},素材处理失败")
+        reply_msg({"text": "素材处理失败!"}, "text", message_id, article_collect_config)
     return output
 
 

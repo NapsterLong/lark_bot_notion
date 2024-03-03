@@ -71,7 +71,7 @@ def bitable_list_fields(app_token, table_id) -> List[AppTableFieldForList]:
 
 
 # https://open.feishu.cn/document/server-docs/docs/bitable-v1/app-table-record/list?appId=cli_a53cc9d5d2f8d013
-def bitable_list_records(app_token, table_id, page_token=None, page_size=500) -> List[AppTableRecord]:
+def bitable_list_records(app_token, table_id, page_token="", page_size=500) -> List[AppTableRecord]:
     lark_client = (
         lark.Client.builder()
         .domain(doc_manager_config.domain)
@@ -106,7 +106,7 @@ def bitable_list_records(app_token, table_id, page_token=None, page_size=500) ->
     return response.data.items or []
 
 
-def bitable_list_records_all(app_token, table_id, page_token=None, page_size=500) -> List[AppTableRecord]:
+def bitable_list_records_all(app_token, table_id, page_token="", page_size=500) -> List[AppTableRecord]:
     lark_client = (lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
         doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build())
     # 构造请求对象
@@ -237,5 +237,5 @@ def docx_list_blocks(obj_token) -> List[Block]:
 if __name__ == '__main__':
     app_token = "ZNe3bCaQaaFwZrsrqJXcfOBPnah"
     table_id = "tblhHroNH6EkMCIL"
-    for x in bitable_list_records_all(app_token, table_id, [], 5):
+    for x in bitable_list_records_all(app_token, table_id, "", 5):
         print(x.fields.get("文章链接"))
