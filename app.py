@@ -17,8 +17,6 @@ from article.auto import gpt_base_process
 from util import is_url
 from lark_util import doc_manager_config, article_collect_config
 
-
-
 dictConfig(
     {
         "version": 1,
@@ -37,7 +35,6 @@ dictConfig(
         "root": {"level": "INFO", "handlers": ["wsgi"]},
     }
 )
-
 
 executors = ThreadPoolExecutor(8)
 
@@ -98,7 +95,7 @@ def article_callback():
                     {"text": "素材处理中，请稍等。"},
                     article_collect_config,
                 )
-                executors.submit(gpt_base_process,text,open_id)
+                executors.submit(gpt_base_process, text, open_id)
             else:
                 send_msg(
                     "open_id",
