@@ -1,20 +1,23 @@
+import logging
+import math
 import os
-
 # import sys
 # sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 import random
 import re
-import math
-import logging
+
 import requests
 from openai import OpenAI
-from trafilatura import fetch_url, extract
-from doc import bitable_insert_record
-from lark_util import article_collect_config
-from message import send_msg, reply_msg
+from trafilatura import extract
 from zhipuai import ZhipuAI
 
+from doc import bitable_insert_record, bitable_list_records_all
+from lark_util import article_collect_config
+from message import reply_msg
+
 model_name = "glm-4"
+app_token = "ZNe3bCaQaaFwZrsrqJXcfOBPnah"
+table_id = "tblhHroNH6EkMCIL"
 
 if model_name == "gpt-4-turbo-preview":
     proxy_url = "http://127.0.0.1"
@@ -184,16 +187,29 @@ def get_url_content(url):
     return title, output
 
 
+def check_dup(url):
+    all_datas = bitable_list_records_all(app_token, table_id)
+    for d in all_datas:
+        if d.fields.get("文章链接").strip() == url.strip():
+            return True
+    return False
+
+
 def gpt_base_process(url, message_id=""):
     output = ""
     try:
+        if check_dup(url):
+            logging.info(f"{url},该文章素材已被收集过")
+            if message_id:
+                reply_msg({"text": "该文章素材已被收集过!"}, "text", message_id, article_collect_config)
+            return
         llm_client = client.get(model_name)
         logging.info(f"{url},处理开始")
         title, origin_content = get_url_content(url)
 
         new_title_prompt = prompts[model_name]["step4"].format(title=title)
         new_title = llm_chat(llm_client, new_title_prompt)
-        new_title = new_title.strip("\"")
+        new_title = format_title(new_title)
         logging.info(f"{url},标题生成成功")
 
         article_framework_prompt = prompts[model_name]["step1"].format(text=origin_content)
@@ -222,28 +238,27 @@ def gpt_base_process(url, message_id=""):
         logging.info(f"{url},文章转换成功")
         if not message_id:
             print(f"\n{output}\n")
-
-        write_database(
-            url, title, new_title, origin_content, output, article_framework, article
-        )
+        write_database(url, title, new_title, origin_content, output, article_framework, article)
         logging.info(f"{url},数据库写入成功")
         if message_id:
-            reply_msg(
-                {"text": "素材已整理完成!"},
-                "text",
-                message_id,
-                article_collect_config,
-            )
+            reply_msg({"text": "素材已整理完成!"}, "text", message_id, article_collect_config)
     except Exception as e:
         logging.exception(f"{url},素材处理失败")
     return output
 
 
+def format_title(new_title):
+    new_title = new_title.strip("\"")
+    new_title_sp = new_title.splitlines()
+    new_title_sp = [s.strip() for s in new_title_sp if s.strip()]
+    if len(new_title_sp) > 1:
+        new_title = new_title_sp[0]
+    return new_title
+
+
 def write_database(
         url, title, new_title, origin_content, output, article_framework, article
 ):
-    app_token = "ZNe3bCaQaaFwZrsrqJXcfOBPnah"
-    table_id = "tblhHroNH6EkMCIL"
     record = {
         "文章链接": {"link": url, "text": url},
         "旧标题": title,

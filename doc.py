@@ -71,7 +71,7 @@ def bitable_list_fields(app_token, table_id) -> List[AppTableFieldForList]:
 
 
 # https://open.feishu.cn/document/server-docs/docs/bitable-v1/app-table-record/list?appId=cli_a53cc9d5d2f8d013
-def bitable_list_records(app_token, table_id) -> List[AppTableRecord]:
+def bitable_list_records(app_token, table_id, page_token=None, page_size=500) -> List[AppTableRecord]:
     lark_client = (
         lark.Client.builder()
         .domain(doc_manager_config.domain)
@@ -86,6 +86,8 @@ def bitable_list_records(app_token, table_id) -> List[AppTableRecord]:
         ListAppTableRecordRequest.builder()
         .app_token(app_token)
         .table_id(table_id)
+        .page_size(page_size)
+        .page_token(page_token)
         .build()
     )
 
@@ -102,6 +104,32 @@ def bitable_list_records(app_token, table_id) -> List[AppTableRecord]:
         return []
 
     return response.data.items or []
+
+
+def bitable_list_records_all(app_token, table_id, page_token=None, page_size=500) -> List[AppTableRecord]:
+    lark_client = (lark.Client.builder().domain(doc_manager_config.domain).app_id(doc_manager_config.app_id).app_secret(
+        doc_manager_config.app_secret).enable_set_token(True).log_level(lark.LogLevel.INFO).build())
+    # 构造请求对象
+    has_more = True
+    datas = []
+    while has_more:
+        request: ListAppTableRecordRequest = (
+            ListAppTableRecordRequest.builder().app_token(app_token).table_id(table_id).page_size(page_size).page_token(
+                page_token).build())
+
+        # 发起请求
+        response: ListAppTableRecordResponse = lark_client.bitable.v1.app_table_record.list(request)
+
+        # 处理失败返回
+        if not response.success():
+            lark.logger.error(
+                f"client.bitable.v1.app_table_record.list failed, code: {response.code}, msg: {response.msg}, log_id: {response.get_log_id()}"
+            )
+            datas.extend([])
+        datas.extend(response.data.items or [])
+        has_more = response.data.has_more
+        page_token = response.data.page_token
+    return datas
 
 
 def bitable_insert_record(app_token, table_id, record, config=doc_manager_config):
@@ -204,3 +232,10 @@ def docx_list_blocks(obj_token) -> List[Block]:
         return []
 
     return response.data.items or []
+
+
+if __name__ == '__main__':
+    app_token = "ZNe3bCaQaaFwZrsrqJXcfOBPnah"
+    table_id = "tblhHroNH6EkMCIL"
+    for x in bitable_list_records_all(app_token, table_id, [], 5):
+        print(x.fields.get("文章链接"))
