@@ -250,6 +250,8 @@ def gpt_base_process(url, message_id=""):
 
 def format_title(new_title):
     new_title = new_title.strip("\"")
+    if new_title.startswith("新标题："):
+        new_title = new_title[4:]
     new_title_sp = new_title.splitlines()
     new_title_sp = [s.strip() for s in new_title_sp if s.strip()]
     if len(new_title_sp) > 1:
