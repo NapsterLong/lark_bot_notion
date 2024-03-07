@@ -161,6 +161,7 @@ def lark_doc2bitable():
                             "text": c_node.title,
                         }
                     }
+                    logger.info(f"add,{parent_node.title},{c_node.title}")
                     if bitable_insert_record(app_token, table_id, record):
                         add_data.append(
                             {
@@ -196,6 +197,7 @@ def lark_bitable_auto_delete():
                     prefix, document_token = os.path.split(url)
                     wiki_node = get_wiki_node(document_token)
                     if not wiki_node:
+                        logger.info(f"delete,{c_node.title},{primary_value_text}")
                         if bitable_delete_record(app_token, table_id, r.record_id):
                             delete_data.append(
                                 {
@@ -230,6 +232,7 @@ def lark_doc_job():
 
 
 if __name__ == "__main__":
-    scheduler.init_app(app)
-    scheduler.start()
-    app.run("0.0.0.0", 9527, debug=True, use_reloader=False)
+    lark_doc_job()
+    # scheduler.init_app(app)
+    # scheduler.start()
+    # app.run("0.0.0.0", 9527, debug=True, use_reloader=False)
