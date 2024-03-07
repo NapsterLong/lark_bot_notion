@@ -232,7 +232,7 @@ def lark_doc_job():
 
 
 if __name__ == "__main__":
-    lark_doc_job()
-    # scheduler.init_app(app)
-    # scheduler.start()
-    # app.run("0.0.0.0", 9527, debug=True, use_reloader=False)
+    # lark_doc_job()
+    scheduler.init_app(app)
+    scheduler.start()
+    app.run("0.0.0.0", 9527, debug=True, use_reloader=False)
