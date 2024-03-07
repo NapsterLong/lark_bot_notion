@@ -65,23 +65,25 @@ def nodes_all(parent_node_token=None) -> List[Node]:
     return result
 
 
-today = datetime.today()
-last_7 = today - timedelta(days=7)
-start_ts = int(last_7.timestamp())
-end_ts = int(today.timestamp())
-
-
 def scan_target_node(parent_node_token=None, parent_node: Node = None):
+    today = datetime.today()
+    last_7 = today - timedelta(days=7)
+    start_ts = int(last_7.timestamp())
+    end_ts = int(today.timestamp())
     result = []
     for c_node in nodes_all(parent_node_token):
         if parent_node:
-            if start_ts <= int(c_node.node_create_time) <= end_ts and parent_node.obj_type in ("docx", "bitable"):
+            if start_ts <= int(c_node.obj_edit_time) <= end_ts and parent_node.obj_type in ("docx", "bitable"):
                 result.append((c_node, parent_node))
         result.extend(scan_target_node(c_node.node_token, c_node))
     return result
 
 
 def scan_bitable_node(parent_node_token=None):
+    today = datetime.today()
+    last_7 = today - timedelta(days=7)
+    start_ts = int(last_7.timestamp())
+    end_ts = int(today.timestamp())
     result = []
     for c_node in nodes_all(parent_node_token):
         if c_node.obj_type == "bitable":
