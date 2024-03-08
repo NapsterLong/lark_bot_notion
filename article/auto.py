@@ -195,6 +195,9 @@ def check_dup(url):
     return False
 
 
+re_number = re.compile("\d")
+
+
 def gpt_base_process(url, message_id=""):
     output = ""
     try:
@@ -208,9 +211,13 @@ def gpt_base_process(url, message_id=""):
         title, origin_content = get_url_content(url)
 
         new_title_prompt = prompts[model_name]["step4"].format(title=title)
-        new_title = llm_chat(llm_client, new_title_prompt)
-        new_title = format_title(new_title)
-        logging.info(f"{url},标题生成成功")
+
+        for i in range(3):
+            new_title = llm_chat(llm_client, new_title_prompt)
+            new_title = format_title(new_title)
+            if re_number.search(new_title):
+                logging.info(f"{url},标题生成成功")
+                break
 
         article_framework_prompt = prompts[model_name]["step1"].format(text=origin_content)
         article_framework = llm_chat(llm_client, article_framework_prompt)
