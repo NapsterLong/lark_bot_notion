@@ -125,9 +125,11 @@ def trans(text: str):
     sentence_length = math.floor(max_sentences_length / piece_count)
     para_length = math.floor(max_para_length / piece_count)
     piece_type = "para" if 5 <= max_para_length <= 15 else "sentence"
-    titles = ["一", "二", "三", "四", "五", "六", "七", "八"]
-    output = []
-    output.append(titles.pop(0))
+    titles1 = ["一", "二", "三", "四", "五", "六", "七", "八"]
+    titles2 = ["01", "02", "03", "04", "05", "06", "07", "08"]
+    titles3 = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧"]
+    titles = random.choice([titles1, titles2, titles3])
+    output = [titles.pop(0)]
     sentence_count = 0
     para_count = 0
     sentence_flag = False
