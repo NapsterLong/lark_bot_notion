@@ -111,6 +111,28 @@ prompts = {
         需要改写的标题如下：
         原标题5：{title}
         """,
+        "step5": """
+        # Role：
+        你是标题分类器，一个专门针对文章标题进行分类的工具。
+        
+        # WorkFlow：
+        1. 根据用户输入的标题，请以冲突的类型给这些文章分类，其中冲突的分类包含以下几种类型：
+        - 夫妻忠诚冲突：包括不忠、外遇、出轨、小三、背叛、性生活、生育能力、孩子不是亲生、绿帽、离婚、爱上别人等内容；
+        - 夫妻其他冲突：包括夫妻生活习惯、孩子教育、家务、沟通、消费理念等内容；
+        - 婆媳冲突：包括婆婆和媳妇之间发生的冲突等内容；
+        - 家庭伦理冲突：包括姐夫和小姨子不正当关系、老公和小姑子不正当关系、女婿和岳母不正当关系、媳妇和公公不正当关系、媳妇和哥哥弟弟不正当关系等内容；
+        - 父母子女冲突：包括父母和孩子之间的冲突等内容：
+        - 兄弟姐妹冲突：包括兄弟姐妹之间的冲突；
+        - 单身家庭冲突：包括单身家庭背景下的冲突；
+        - 职业职场冲突：包括职场中的各种冲突；
+        - 特殊爱情冲突：包括年龄差别很大的婚姻、一夜情、嫖娼等内容
+        - 其他冲突：不包含以上场景的其他冲突
+        2. 首先输出推理过程，以推理过程：开头，然后输出分类结果，以结果：开头，禁止输出其他额外信息；
+        3. 注意结果中只能包含以下10种值： 夫妻忠诚冲突、夫妻其他冲突、婆媳冲突、家庭伦理冲突、父母子女冲突、兄弟姐妹冲突、单身家庭冲突、职业职场冲突、特殊爱情冲突、其他冲突
+        
+        # Inputs
+        标题：{title}
+        """
     }
 
 }
@@ -218,6 +240,7 @@ def check_dup(url):
 
 
 re_number = re.compile("\d")
+re_title_cls = re.compile("推理过程：(.*)\s+结果：(.*)")
 
 
 def gpt_base_process(url, message_id=""):
@@ -242,6 +265,13 @@ def gpt_base_process(url, message_id=""):
                 break
         if new_title == "标题提取失败":
             raise ValueError("标题提取失败")
+
+        title_cls = ""
+        title_cls_prompt = prompts[model_name]["step5"].format(title=title)
+        title_cls_res = llm_chat(llm_client, title_cls_prompt, temperature=0.01, max_tokens=256)
+        re_res = re_title_cls.search(title_cls_res)
+        if re_res:
+            title_cls = re_res.groups()[1].strip("。")
 
         article_framework_prompt = prompts[model_name]["step1"].format(text=origin_content)
         article_framework = llm_chat(llm_client, article_framework_prompt)
@@ -269,7 +299,7 @@ def gpt_base_process(url, message_id=""):
         logging.info(f"{url},文章转换成功")
         if not message_id:
             print(f"\n{output}\n")
-        write_database(url, title, new_title, origin_content, output, article_framework, article)
+        write_database(url, title, new_title, origin_content, output, article_framework, article, title_cls)
         logging.info(f"{url},数据库写入成功")
         if message_id:
             reply_msg({"text": "素材已整理完成!"}, "text", message_id, article_collect_config)
@@ -300,7 +330,7 @@ def format_title(new_title):
 
 
 def write_database(
-        url, title, new_title, origin_content, output, article_framework, article
+        url, title, new_title, origin_content, output, article_framework, article, title_cls
 ):
     record = {
         "文章链接": {"link": url, "text": url},
@@ -311,6 +341,7 @@ def write_database(
         "框架": article_framework,
         "生成内容": article,
         "状态": "待发布",
+        "标题分类": title_cls
     }
     bitable_insert_record(app_token, table_id, record, article_collect_config)
 
