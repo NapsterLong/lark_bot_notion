@@ -272,6 +272,10 @@ def gpt_base_process(url, message_id=""):
         re_res = re_title_cls.search(title_cls_res)
         if re_res:
             title_cls = re_res.groups()[1].strip("。")
+        if title_cls:
+            logging.info(f"{url},标题分类成功")
+        else:
+            logging.info(f"{url},标题分类失败")
 
         article_framework_prompt = prompts[model_name]["step1"].format(text=origin_content)
         article_framework = llm_chat(llm_client, article_framework_prompt)
@@ -291,7 +295,7 @@ def gpt_base_process(url, message_id=""):
             expand_prompt = prompts[model_name]["step3"].format(text=partial_article)
             new_partial_article = llm_chat(llm_client, expand_prompt)
             article = remain1 + new_partial_article + remain2
-            logging.info(f"{url},文章扩写成功")
+            logging.info(f"{url},文章扩写成功，字数：{len(article)}")
             if not message_id:
                 print(f"\n{article}\n")
 
