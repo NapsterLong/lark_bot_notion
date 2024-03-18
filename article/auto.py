@@ -227,8 +227,9 @@ def get_url_content(url):
     downloaded = resp.json()
     title = downloaded.get("title")
     content_noencode = downloaded.get("content_noencode")
+    page_create_time = downloaded.get("create_time")
     output = extract(content_noencode)
-    return title, output
+    return title, output, page_create_time
 
 
 def check_dup(url):
@@ -253,7 +254,7 @@ def gpt_base_process(url, message_id=""):
             return
         llm_client = client.get(model_name)
         logging.info(f"{url},处理开始")
-        title, origin_content = get_url_content(url)
+        title, origin_content, page_create_time = get_url_content(url)
 
         new_title_prompt = prompts[model_name]["step4"].format(title=title)
 
@@ -303,7 +304,8 @@ def gpt_base_process(url, message_id=""):
         logging.info(f"{url},文章转换成功")
         if not message_id:
             print(f"\n{output}\n")
-        write_database(url, title, new_title, origin_content, output, article_framework, article, title_cls)
+        write_database(url, title, new_title, origin_content, output, article_framework, article, title_cls,
+                       page_create_time)
         logging.info(f"{url},数据库写入成功")
         if message_id:
             reply_msg({"text": "素材已整理完成!"}, "text", message_id, article_collect_config)
@@ -334,7 +336,7 @@ def format_title(new_title):
 
 
 def write_database(
-        url, title, new_title, origin_content, output, article_framework, article, title_cls
+        url, title, new_title, origin_content, output, article_framework, article, title_cls, page_create_time
 ):
     record = {
         "文章链接": {"link": url, "text": url},
@@ -345,7 +347,8 @@ def write_database(
         "框架": article_framework,
         "生成内容": article,
         "状态": "待发布",
-        "标题分类": title_cls
+        "标题分类": title_cls,
+        "文章发布时间": page_create_time
     }
     bitable_insert_record(app_token, table_id, record, article_collect_config)
 
