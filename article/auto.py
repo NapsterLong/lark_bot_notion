@@ -1,3 +1,4 @@
+import datetime
 import logging
 import math
 import os
@@ -348,7 +349,7 @@ def write_database(
         "生成内容": article,
         "状态": "待发布",
         "标题分类": title_cls,
-        "文章发布时间": page_create_time
+        "文章发布时间": int(datetime.datetime.strptime(page_create_time, "%Y-%m-%d %H:%M").timestamp())*1000
     }
     bitable_insert_record(app_token, table_id, record, article_collect_config)
 
