@@ -13,7 +13,7 @@ from message import send_msg, reply_msg
 from wiki import scan_bitable_node, scan_target_node, get_wiki_node
 from doc import *
 from datetime import datetime
-from article.auto import gpt_base_process
+from article.auto_gc import gpt_base_process
 from util import is_url
 from lark_util import doc_manager_config, article_collect_config
 
