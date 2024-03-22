@@ -233,10 +233,17 @@ def get_url_content(url):
     return title, output, page_create_time
 
 
-def check_dup(url):
+def all_exist_articles():
+    all_datas = bitable_list_records_all(app_token, table_id)
+    return all_datas
+
+
+def check_dup(url, title=""):
     all_datas = bitable_list_records_all(app_token, table_id)
     for d in all_datas:
         if d.fields.get("文章链接").get("link").strip() == url.strip():
+            return True
+        if d.fields.get("旧标题").strip() == title.strip():
             return True
     return False
 
@@ -245,7 +252,7 @@ re_number = re.compile("\d")
 re_title_cls = re.compile("推理过程：(.*)\s+结果：(.*)")
 
 
-def gpt_base_process(url, message_id=""):
+def auto_gc_process(url, message_id=""):
     output = ""
     try:
         if check_dup(url):
@@ -256,6 +263,12 @@ def gpt_base_process(url, message_id=""):
         llm_client = client.get(model_name)
         logging.info(f"{url},处理开始")
         title, origin_content, page_create_time = get_url_content(url)
+
+        if check_dup(url, title):
+            logging.info(f"{url},{title},该文章素材已被收集过")
+            if message_id:
+                reply_msg({"text": "该文章素材已被收集过!"}, "text", message_id, article_collect_config)
+            return
 
         new_title_prompt = prompts[model_name]["step4"].format(title=title)
 
@@ -312,7 +325,9 @@ def gpt_base_process(url, message_id=""):
             reply_msg({"text": "素材已整理完成!"}, "text", message_id, article_collect_config)
     except Exception as e:
         logging.exception(f"{url},素材处理失败")
-        reply_msg({"text": "素材处理失败!"}, "text", message_id, article_collect_config)
+        if message_id:
+            reply_msg({"text": "素材处理失败!"}, "text", message_id, article_collect_config)
+        return None
     return output
 
 
@@ -349,50 +364,6 @@ def write_database(
         "生成内容": article,
         "状态": "待发布",
         "标题分类": title_cls,
-        "文章发布时间": int(datetime.datetime.strptime(page_create_time, "%Y-%m-%d %H:%M").timestamp())*1000
+        "文章发布时间": int(datetime.datetime.strptime(page_create_time, "%Y-%m-%d %H:%M").timestamp()) * 1000
     }
     bitable_insert_record(app_token, table_id, record, article_collect_config)
-
-
-if __name__ == "__main__":
-    # gpt_base_process("https://mp.weixin.qq.com/s/QlvKtiRStvxuEp3L55Hdlw")
-    a = trans("""
-    
-我叫王力，今年35岁，在一家软件公司上班，收入稳定。我老婆叫赵娜，跟我同岁，是个小学老师，温柔贤惠。我们结婚五年了，一直过着平静的小康生活。那天寒冷的冬夜，天空中飘着细小的雪花，赵娜在浴室里洗去了疲惫，突然大声叫我下去买卫生巾。我正蜷缩在沙发上看着电视，一听这话，心里顿时焦虑起来。这大晚上的，附近的商店早已经关门，我上哪儿去买啊？但我还是赶紧穿上外套，冲出了门。
-
-焦急的情绪让我忘了带钱，只好又气喘吁吁地跑回家。推开浴室门的那一刻，我看到了赵娜手中的试纸，和她脸上那个镇定的、充满喜悦的笑容。
-
-“我们要有宝宝了。”她语气温柔地说道。我愣住了，然后激动地抱住了她，感觉像是收到了一份意想不到的礼物。那天晚上，我们俩相拥入眠，聊了很久，规划着未来，满是兴奋和期待。
-
-然而，当我把这个天大的消息告诉我爸妈的时候，我内心却开始忐忑不安。我一直知道，他们支持我们过丁克生活，担心我们有了孩子会手忙脚乱。赵娜也显得担忧，怕我爸妈会责怪我们之前没打算要孩子。
-
-终于，紧张的时刻到了，我牵着赵娜的手，带着她去见我爸妈。我手心都是汗，心里矛盾重重，像是有十五个吊桶打水——七上八下。但出乎意料的是，我妈突然泪流满面，我爸则长叹一声。赵娜和我都愣住了，心里更加紧张了。
-
-“妈，你怎么了？”我小心翼翼地问，心里越发地七上八下。
-
-“没，没事，”我妈擦了擦眼泪，露出一丝微笑，“我只是太高兴了，一直盼着你们有个孩子，只是没想到会这么突然。”
-
-“那爸，你叹什么气呢？”我又问我爸，心里还是有些不安。
-
-我爸深深地看着我，说道：“我只是担心，你们还没准备好面对父母的角色，这个责任可重大啊。”
-
-听到他们这么说，我和赵娜心中的石头终于落地了。我们明白了，家人的理解和支持，是我们最大的动力。
-
-为了迎接新生命的到来，我开始忙碌起来。我陪着赵娜去做产检，我们一起挑选婴儿用品，甚至开始学习育儿知识。在这个过程中，我发现自己原来那么期待这个新生命的到来。
-
-然而，生活总会有一些小插曲。有一天，我下班回家，发现赵娜坐在沙发上，脸色不太好。
-
-“怎么了，娜娜？”我赶紧放下公文包，关切地问。
-
-“今天我去产检，医生说我有点贫血，需要好好休息。”她低声说，显得有些担忧。
-
-我一下子就急了，忙问：“那怎么办？我们要怎么帮你调理？我可不想让你和宝宝有任何闪失。”
-
-赵娜笑了，轻轻拍了拍我的手：“没事，医生说只要注意饮食和休息就好。”
-
-那段时间，我成了赵娜的“专职厨师”，每天变着花样给她做好吃的。而赵娜也严格按照医生的嘱咐，按时休息，保持好心情。
-
-终于，那一天到来了。我们的宝宝顺利出生，是个可爱的女儿。看着她粉嫩的小脸，我心中充满了喜悦和感激，仿佛看到了我们幸福的未来。这段经历让我明白，家庭是我们最坚实的后盾，爱和理解是我们战胜一切困难的力量。在未来的日子里，我会更加珍惜这个家，和我的老婆孩子一起，勇敢地面对生活的每一个挑战。
-
-    """)
-    print(a)

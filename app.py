@@ -1,4 +1,5 @@
 import os
+import random
 import sys
 
 sys.path.append(os.path.dirname(__file__))
@@ -13,9 +14,10 @@ from message import send_msg, reply_msg
 from wiki import scan_bitable_node, scan_target_node, get_wiki_node
 from doc import *
 from datetime import datetime
-from article.auto_gc import gpt_base_process
 from util import is_url
 from lark_util import doc_manager_config, article_collect_config
+from article.auto_cw import get_related_article_depth, get_article_read_num
+from article.auto_gc import auto_gc_process, all_exist_articles
 
 dictConfig(
     {
@@ -95,7 +97,7 @@ def article_callback():
                     message_id,
                     article_collect_config,
                 )
-                executors.submit(gpt_base_process, text, message_id)
+                executors.submit(auto_gc_process, text, message_id)
             else:
                 reply_msg(
                     {"text": "对不起，输入有误！"},
@@ -231,8 +233,53 @@ def lark_doc_job():
     logger.info("lark_doc_job done")
 
 
+@scheduler.task("cron", id="lark_doc_job", day="*", hour="11", minute="00", second="00")
+def auto_cw():
+    logger.info("auto_cw start")
+    all_articles = all_exist_articles()
+    exist_urls = []
+    for d in all_articles:
+        exist_urls.append(d.fields.get("文章链接").get("link").strip())
+    article_url = random.choice(exist_urls)
+    urls_queue = get_related_article_depth(article_url)
+    success_urls = []
+    loop_times = 0
+    while len(success_urls) <= 20:
+        try:
+            url = urls_queue.pop(0)
+            read_num = get_article_read_num(url)
+            if read_num > 10000:
+                res = auto_gc_process(url)
+                if res:
+                    success_urls.append(url)
+            time.sleep(10)
+            related_urls = get_related_article_depth(url)
+            urls_queue.extend(related_urls)
+        except Exception as e :
+            logger.exception(e)
+            continue
+        loop_times += 1
+        if loop_times >= 100:
+            break
+
+    # today = datetime.today().strftime("%Y-%m-%d")
+    # content = {
+    #     "type": "template",
+    #     "data": {
+    #         "template_id": "ctp_AA1MZVTX3QtW",
+    #         "template_variable": {
+    #             "today": today,
+    #             "add_data": add_data,
+    #             "delete_data": delete_data,
+    #         },
+    #     },
+    # }
+    # send_msg("user_id", "4g898ecg", "interactive", content)
+    logger.info("auto_cw done")
+
+
 if __name__ == "__main__":
-    # lark_doc_job()
-    scheduler.init_app(app)
-    scheduler.start()
-    app.run("0.0.0.0", 9527, debug=True, use_reloader=False)
+    auto_cw()
+    # scheduler.init_app(app)
+    # scheduler.start()
+    # app.run("0.0.0.0", 9527, debug=True, use_reloader=False)
