@@ -148,13 +148,13 @@ def auto_cw(cookie, message_id, a_type):
     loop_times = 0
     success_flag = True
     while len(success_urls) <= max_count:
+        url = urls_queue.pop(0)
         loop_times += 1
-        print(f"循环{loop_times}:{url}")
+        logging.info(f"循环{loop_times}:{url}")
         if loop_times >= 100:
             success_flag = False
             break
         try:
-            url = urls_queue.pop(0)
             article_info = get_article_info(url)
             read_num = get_article_read_num(url, cookie)
             if check_meet_req(read_num, read_num_max, article_info, a_type):
