@@ -113,7 +113,7 @@ def check_meet_req(read_num, read_num_max, article_info, a_type):
         if read_num > read_num_max:
             today_ts = datetime.today().timestamp()
             article_ts = float(article_info.get("create_timestamp"))
-            if today_ts - article_ts <= 10 * 24 * 60 * 60:
+            if today_ts - article_ts <= 15 * 24 * 60 * 60:
                 return True
             else:
                 return False
@@ -140,9 +140,13 @@ def auto_cw(cookie, message_id, a_type):
     for d in all_articles:
         if d.fields.get("状态") == "已发布" and "公众号" in d.fields.get("发布渠道") and d.fields.get("标题分类") in (
                 "夫妻忠诚冲突", "特殊爱情冲突", "家庭伦理冲突", "婆媳冲突"):
-            exist_urls.append(d.fields.get("文章链接").get("link").strip())
-    article_url = random.choice(exist_urls)
-    urls_queue = get_related_article_depth(article_url, get_article_info(article_url))
+            exist_urls.append([d.fields.get("文章链接").get("link").strip(), d.fields.get("素材保存时间")])
+    exist_urls = sorted(exist_urls, key=lambda x: x[1], reverse=True)[:5]
+    urls_queue = []
+    for eu in exist_urls:
+        article_url = eu[0]
+        urls_queue.extend(get_related_article_depth(article_url, get_article_info(article_url)))
+        time.sleep(5)
     success_urls = []
     failed_times = 0
     loop_times = 0

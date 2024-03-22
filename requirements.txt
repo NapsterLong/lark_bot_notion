@@ -10,3 +10,4 @@ openai==1.6.0
 trafilatura==1.7.0
 requests~=2.31.0
 zhipuai~=2.0.1
+beautifulsoup==4.12.3
