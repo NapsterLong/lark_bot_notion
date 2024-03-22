@@ -16,7 +16,7 @@ from doc import *
 from datetime import datetime
 from util import is_url
 from lark_util import doc_manager_config, article_collect_config
-from article.auto_cw import get_related_article_depth, get_article_read_num
+from article.auto_cw import get_related_article_depth, get_article_read_num, auto_collect
 from article.auto_gc import auto_gc_process, all_exist_articles
 
 dictConfig(
@@ -90,7 +90,16 @@ def article_callback():
         if message.get("message_type") == "text":
             content = message.get("content")
             text = json.loads(content).get("text")
-            if is_url(text):
+            if str(text).startswith("/auto"):
+                cookie = text[5:].strip()
+                reply_msg(
+                    {"text": "素材自动收集中，请稍等。"},
+                    "text",
+                    message_id,
+                    article_collect_config,
+                )
+                executors.submit(auto_collect, cookie, message_id)
+            elif is_url(text):
                 reply_msg(
                     {"text": "素材处理中，请稍等。"},
                     "text",
@@ -233,53 +242,7 @@ def lark_doc_job():
     logger.info("lark_doc_job done")
 
 
-@scheduler.task("cron", id="lark_doc_job", day="*", hour="11", minute="00", second="00")
-def auto_cw():
-    logger.info("auto_cw start")
-    all_articles = all_exist_articles()
-    exist_urls = []
-    for d in all_articles:
-        exist_urls.append(d.fields.get("文章链接").get("link").strip())
-    article_url = random.choice(exist_urls)
-    urls_queue = get_related_article_depth(article_url)
-    success_urls = []
-    loop_times = 0
-    while len(success_urls) <= 20:
-        try:
-            url = urls_queue.pop(0)
-            read_num = get_article_read_num(url)
-            if read_num > 10000:
-                res = auto_gc_process(url)
-                if res:
-                    success_urls.append(url)
-            time.sleep(10)
-            related_urls = get_related_article_depth(url)
-            urls_queue.extend(related_urls)
-        except Exception as e :
-            logger.exception(e)
-            continue
-        loop_times += 1
-        if loop_times >= 100:
-            break
-
-    # today = datetime.today().strftime("%Y-%m-%d")
-    # content = {
-    #     "type": "template",
-    #     "data": {
-    #         "template_id": "ctp_AA1MZVTX3QtW",
-    #         "template_variable": {
-    #             "today": today,
-    #             "add_data": add_data,
-    #             "delete_data": delete_data,
-    #         },
-    #     },
-    # }
-    # send_msg("user_id", "4g898ecg", "interactive", content)
-    logger.info("auto_cw done")
-
-
 if __name__ == "__main__":
-    auto_cw()
-    # scheduler.init_app(app)
-    # scheduler.start()
-    # app.run("0.0.0.0", 9527, debug=True, use_reloader=False)
+    scheduler.init_app(app)
+    scheduler.start()
+    app.run("0.0.0.0", 9527, debug=True, use_reloader=False)
