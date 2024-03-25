@@ -143,6 +143,7 @@ def auto_cw(cookie, message_id, a_type):
             exist_urls.append([d.fields.get("文章链接").get("link").strip(), d.fields.get("素材保存时间")])
     exist_urls = sorted(exist_urls, key=lambda x: x[1], reverse=True)[:5]
     urls_queue = []
+    logging.info("种子数据挑选完成")
     for eu in exist_urls:
         article_url = eu[0]
         urls_queue.extend(get_related_article_depth(article_url, get_article_info(article_url)))
@@ -151,7 +152,7 @@ def auto_cw(cookie, message_id, a_type):
     failed_times = 0
     loop_times = 0
     success_flag = True
-    logging.info("种子数据挑选完成")
+    logging.info("循环开始")
     while len(success_urls) <= max_count:
         url = urls_queue.pop(0)
         loop_times += 1
