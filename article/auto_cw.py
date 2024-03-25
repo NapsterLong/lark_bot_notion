@@ -113,7 +113,7 @@ def check_meet_req(read_num, read_num_max, article_info, a_type):
         if read_num > read_num_max:
             today_ts = datetime.today().timestamp()
             article_ts = float(article_info.get("create_timestamp"))
-            if today_ts - article_ts <= 15 * 24 * 60 * 60:
+            if today_ts - article_ts <= 7 * 24 * 60 * 60:
                 return True
             else:
                 return False

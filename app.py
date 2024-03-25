@@ -16,7 +16,7 @@ from doc import *
 from datetime import datetime
 from util import is_url
 from lark_util import doc_manager_config, article_collect_config
-from article.auto_cw import get_related_article_depth, get_article_read_num, auto_collect
+from article.auto_cw import get_related_article_depth, get_article_read_num, auto_collect, auto_cw
 from article.auto_gc import auto_gc_process, all_exist_articles
 
 dictConfig(
@@ -91,29 +91,18 @@ def article_callback():
             content = message.get("content")
             text = json.loads(content).get("text")
             if str(text).startswith("/auto"):
-                cookie = text[5:].strip()
-                reply_msg(
-                    {"text": "素材自动收集中，请稍等。"},
-                    "text",
-                    message_id,
-                    article_collect_config,
-                )
-                executors.submit(auto_collect, cookie, message_id)
+                reply_msg({"text": "素材自动收集中，请稍等。"}, "text", message_id, article_collect_config)
+                if str(text).startswith("/autowechat"):
+                    cookie = text[len("/autowechat"):].strip()
+                    executors.submit(auto_cw, cookie, message_id, "wechat")
+                else:
+                    cookie = text[len("/auto"):].strip()
+                    executors.submit(auto_collect, cookie, message_id)
             elif is_url(text):
-                reply_msg(
-                    {"text": "素材处理中，请稍等。"},
-                    "text",
-                    message_id,
-                    article_collect_config,
-                )
+                reply_msg({"text": "素材处理中，请稍等。"}, "text", message_id, article_collect_config)
                 executors.submit(auto_gc_process, text, message_id)
             else:
-                reply_msg(
-                    {"text": "对不起，输入有误！"},
-                    "text",
-                    message_id,
-                    article_collect_config,
-                )
+                reply_msg({"text": "对不起，输入有误！"}, "text", message_id, article_collect_config)
     logger.info(f"response:{rsp}")
     return rsp
 
