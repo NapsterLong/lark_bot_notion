@@ -138,7 +138,8 @@ def auto_cw(cookie, message_id, a_type):
     all_articles = all_exist_articles()
     exist_urls = []
     for d in all_articles:
-        if d.fields.get("状态") == "已发布" and "公众号" in d.fields.get("发布渠道") and d.fields.get("标题分类") in (
+        if d.fields.get("状态") == "已发布" and (
+                d.fields.get("发布渠道") and "公众号" in d.fields.get("发布渠道")) and d.fields.get("标题分类") in (
                 "夫妻忠诚冲突", "特殊爱情冲突", "家庭伦理冲突", "婆媳冲突"):
             exist_urls.append([d.fields.get("文章链接").get("link").strip(), d.fields.get("素材保存时间")])
     exist_urls = sorted(exist_urls, key=lambda x: x[1], reverse=True)[:5]
@@ -192,8 +193,5 @@ def auto_cw(cookie, message_id, a_type):
 
 
 if __name__ == '__main__':
-    test_url = "https://mp.weixin.qq.com/s?__biz=MzIyMjEwNzMzMw==&mid=2247497409&idx=2&sn=d180a28d38d8090fd657b7727bb42ddd&chksm=e9adc246fc3e98bf3c41958e436c4af8f4196b206c8b43bb5652d3e7fa1bd75a48d48de5fa81&scene=132&exptype=timeline_recommend_article_extendread_samebiz&show_related_article=1&subscene=0&scene=132#wechat_redirect"
-    # print(json.dumps(get_article_info(test_url), ensure_ascii=False))
     cookie = "_qimei_uuid42=18211143937100ec94587099cd816f3bc010e8bd23; _qimei_fingerprint=423d21b72aa8eb2715929af85cfdb2c5; _qimei_q36=; _qimei_h38=bafb7ba494587099cd816f3b0300000ed18211; qq_domain_video_guid_verify=1aae745debe4af95; tvfe_boss_uuid=19f9a64658de8ed9; pgv_pvid=2875795175; rewardsn=; wxtokenkey=777; wxuin=704572316; devicetype=iMacMac1412OSXOSX14.2.1build(23C71); version=13080712; lang=zh_CN; appmsg_token=1262_UHrAcSkBVu4gdAn0oVx7gaKu0Law0CcqYEozjOf74Du1yp9s2ASk8KIyZVYRQ6TqIvTj23JW1cdQpzOJ; pass_ticket=mf1Au92SNYHFDqQk91SxYmg781lMCKY4/kmRjQkUHIyVNk0YCbHzRy1usyfy+EF2UNhk6g332dLoxnlvFTOh2g==; wap_sid2=CJzX+88CEooBeV9IQkh0Ql95emR1NU9oWjBTaEZCYk1pYzFRRG5UelBWc1hscG9Jb2tWY2Z6Y0pldV85X0pyV0VtbGZIMnIyNGh6WjlvZWt0R2FhZ096QTRISE5DcE4tOFI0cHdfNlgxTWRiLURXSGtsS3J2dElleElBMW4xcXNIdkUxbEx4NjRLR2JNc1NBQUF+MNap9q8GOA1AAQ=="
-    # print(get_article_read_num(test_url, cookie))
     auto_cw(cookie, "", "wechat")
