@@ -151,6 +151,7 @@ def auto_cw(cookie, message_id, a_type):
     failed_times = 0
     loop_times = 0
     success_flag = True
+    logging.info("种子数据挑选完成")
     while len(success_urls) <= max_count:
         url = urls_queue.pop(0)
         loop_times += 1
