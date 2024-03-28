@@ -125,11 +125,11 @@ def check_meet_req(read_num, read_num_max, article_info, a_type):
 
 def auto_cw(cookie, message_id, a_type):
     if a_type == "wechat":
-        max_count = 10
+        max_count = 30
         read_num_max = 20000
         prefix = "公众号素材"
     else:
-        max_count = 20
+        max_count = 50
         read_num_max = 10000
         prefix = "普通素材"
     logging.info("auto_cw start")
