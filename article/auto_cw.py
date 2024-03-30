@@ -126,11 +126,11 @@ def check_meet_req(read_num, read_num_max, article_info, a_type):
 def auto_cw(cookie, message_id, a_type):
     if a_type == "wechat":
         max_count = 30
-        read_num_max = 20000
+        read_num_max = 2000
         prefix = "公众号素材"
     else:
         max_count = 50
-        read_num_max = 10000
+        read_num_max = 1000
         prefix = "普通素材"
     logging.info("auto_cw start")
     if message_id:
@@ -138,14 +138,15 @@ def auto_cw(cookie, message_id, a_type):
     all_articles = all_exist_articles()
     exist_urls = []
     for d in all_articles:
-        if d.fields.get("状态") == "已发布" and (d.fields.get("发布渠道") and "公众号" in d.fields.get("发布渠道")):
+        if d.fields.get("状态") == "已发布":
             exist_urls.append([d.fields.get("文章链接").get("link").strip(), d.fields.get("素材保存时间")])
-    exist_urls = sorted(exist_urls, key=lambda x: x[1], reverse=True)[:10]
+    exist_urls = sorted(exist_urls, key=lambda x: x[1], reverse=True)[:20]
+    exist_urls = random.choices(exist_urls, 10)
     urls_queue = []
     logging.info("种子数据挑选完成")
     for eu in exist_urls:
         article_url = eu[0]
-        urls_queue.append(random.choice(get_related_article_depth(article_url, get_article_info(article_url))))
+        urls_queue.append(get_related_article_depth(article_url, get_article_info(article_url))[0])
         time.sleep(5)
     success_urls = []
     failed_times = 0
