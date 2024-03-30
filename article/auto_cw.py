@@ -138,16 +138,14 @@ def auto_cw(cookie, message_id, a_type):
     all_articles = all_exist_articles()
     exist_urls = []
     for d in all_articles:
-        if d.fields.get("状态") == "已发布" and (
-                d.fields.get("发布渠道") and "公众号" in d.fields.get("发布渠道")) and d.fields.get("标题分类") in (
-                "夫妻忠诚冲突", "特殊爱情冲突", "家庭伦理冲突", "婆媳冲突"):
+        if d.fields.get("状态") == "已发布" and (d.fields.get("发布渠道") and "公众号" in d.fields.get("发布渠道")):
             exist_urls.append([d.fields.get("文章链接").get("link").strip(), d.fields.get("素材保存时间")])
-    exist_urls = sorted(exist_urls, key=lambda x: x[1], reverse=True)[:5]
+    exist_urls = sorted(exist_urls, key=lambda x: x[1], reverse=True)[:10]
     urls_queue = []
     logging.info("种子数据挑选完成")
     for eu in exist_urls:
         article_url = eu[0]
-        urls_queue.extend(get_related_article_depth(article_url, get_article_info(article_url)))
+        urls_queue.extend(random.choice(get_related_article_depth(article_url, get_article_info(article_url))))
         time.sleep(5)
     success_urls = []
     failed_times = 0
