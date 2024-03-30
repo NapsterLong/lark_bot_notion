@@ -141,7 +141,7 @@ def auto_cw(cookie, message_id, a_type):
         if d.fields.get("状态") == "已发布":
             exist_urls.append([d.fields.get("文章链接").get("link").strip(), d.fields.get("素材保存时间")])
     exist_urls = sorted(exist_urls, key=lambda x: x[1], reverse=True)[:20]
-    exist_urls = random.choices(exist_urls, 10)
+    exist_urls = random.choices(exist_urls, k=10)
     urls_queue = []
     logging.info("种子数据挑选完成")
     for eu in exist_urls:
