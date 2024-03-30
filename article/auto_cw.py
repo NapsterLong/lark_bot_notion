@@ -145,7 +145,7 @@ def auto_cw(cookie, message_id, a_type):
     logging.info("种子数据挑选完成")
     for eu in exist_urls:
         article_url = eu[0]
-        urls_queue.extend(random.choice(get_related_article_depth(article_url, get_article_info(article_url))))
+        urls_queue.append(random.choice(get_related_article_depth(article_url, get_article_info(article_url))))
         time.sleep(5)
     success_urls = []
     failed_times = 0
@@ -191,5 +191,5 @@ def auto_cw(cookie, message_id, a_type):
 
 
 if __name__ == '__main__':
-    cookie = "_qimei_uuid42=18211143937100ec94587099cd816f3bc010e8bd23; _qimei_fingerprint=423d21b72aa8eb2715929af85cfdb2c5; _qimei_q36=; _qimei_h38=bafb7ba494587099cd816f3b0300000ed18211; qq_domain_video_guid_verify=1aae745debe4af95; tvfe_boss_uuid=19f9a64658de8ed9; pgv_pvid=2875795175; rewardsn=; wxtokenkey=777; wxuin=704572316; devicetype=iMacMac1412OSXOSX14.2.1build(23C71); version=13080712; lang=zh_CN; appmsg_token=1262_UHrAcSkBVu4gdAn0oVx7gaKu0Law0CcqYEozjOf74Du1yp9s2ASk8KIyZVYRQ6TqIvTj23JW1cdQpzOJ; pass_ticket=mf1Au92SNYHFDqQk91SxYmg781lMCKY4/kmRjQkUHIyVNk0YCbHzRy1usyfy+EF2UNhk6g332dLoxnlvFTOh2g==; wap_sid2=CJzX+88CEooBeV9IQkh0Ql95emR1NU9oWjBTaEZCYk1pYzFRRG5UelBWc1hscG9Jb2tWY2Z6Y0pldV85X0pyV0VtbGZIMnIyNGh6WjlvZWt0R2FhZ096QTRISE5DcE4tOFI0cHdfNlgxTWRiLURXSGtsS3J2dElleElBMW4xcXNIdkUxbEx4NjRLR2JNc1NBQUF+MNap9q8GOA1AAQ=="
+    cookie = "_qimei_uuid42=18211143937100ec94587099cd816f3bc010e8bd23; _qimei_fingerprint=423d21b72aa8eb2715929af85cfdb2c5; _qimei_q36=; _qimei_h38=bafb7ba494587099cd816f3b0300000ed18211; qq_domain_video_guid_verify=1aae745debe4af95; tvfe_boss_uuid=19f9a64658de8ed9; pgv_pvid=2875795175; appmsg_token=1263_DNU0H0vEeUZ3Cuz%2Frdu-GALqpTUJP8g9nLC3ja8PFaHg3C9Y1qRagm87JcaY7vrsFGMZN22-vGeFwO-H; rewardsn=; wxtokenkey=777; wxuin=704572316; devicetype=iMacMac1412OSXOSX14.2.1build(23C71); version=13080712; lang=zh_CN; pass_ticket=OL0aDtfXiDFXRXioe930t+FPC4uQ8mAZHXAI3ecBXyD4uRoKrrb9Pe5XSj+N8QKYt5btiwIr4d0aIYrJXRfa9g==; wap_sid2=CJzX+88CEooBeV9ITFhKV2FZXzVwZlhIN0tYWUl3N3NqaUpfTWFpTm5pX2pXOWFrd0FGQ3BfV1NyVFJHR2FkM2pHNXREWExuUDNvYzdxT2JveTA3SExNdGNWclhHQnhhSEtZQjZtdTJGeHZNUXpldnZnR1p0dXVWVVp6dTdpQWVuU0NCcVd2c0t6R0ZNMFNBQUF+MMm8oLAGOA1AAQ=="
     auto_cw(cookie, "", "wechat")
