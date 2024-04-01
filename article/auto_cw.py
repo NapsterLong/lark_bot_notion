@@ -125,11 +125,11 @@ def check_meet_req(read_num, read_num_max, article_info, a_type):
 
 def auto_cw(cookie, message_id, a_type):
     if a_type == "wechat":
-        max_count = 30
+        max_count = 50
         read_num_max = 2000
         prefix = "公众号素材"
     else:
-        max_count = 50
+        max_count = 100
         read_num_max = 1000
         prefix = "普通素材"
     logging.info("auto_cw start")
@@ -157,7 +157,7 @@ def auto_cw(cookie, message_id, a_type):
         url = urls_queue.pop(0)
         loop_times += 1
         logging.info(f"循环{loop_times}:{url}")
-        if loop_times >= 100:
+        if loop_times >= 1000:
             success_flag = False
             break
         try:
